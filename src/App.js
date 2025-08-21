@@ -45,11 +45,11 @@ function App() {
 
   // Add this array of your journal page images (replace with your actual image paths)
   const journalPages = [
-    '/images/journal-page-1.jpg',  // Replace with your image paths
-    '/images/journal-page-2.jpg',
-    '/images/journal-page-3.jpg',
-    '/images/journal-page-4.jpg',
-    '/images/journal-page-5.jpg',
+    '/images/page1.png',  // Replace with your image paths
+    '/images/page2.png',
+    '/images/page3.png',
+    '/images/page4.png',
+    '/images/page5.png',
     // Add more pages as needed
   ];
 
@@ -136,7 +136,7 @@ function App() {
     timers.push(setTimeout(() => {
       setShowHowItWorks(true);
       setTourStep(4);
-    }, 20000));
+    }, 15000));
 
     // Step 6: Show obstacle hint after 40 seconds
     timers.push(setTimeout(() => {
@@ -144,12 +144,12 @@ function App() {
       setTourStep(5);
     }, 40000));
 
-    // Step 7: Show obstacle tray after 40 seconds
+    // Step 7: Show obstacle tray after 45 seconds
     timers.push(setTimeout(() => {
       setShowObstacleTray(true);
       setShowObstacleHint(false);
       setTourStep(6);
-    }, 40000));
+    }, 45000));
 
     return () => {
       timers.forEach(timer => clearTimeout(timer));

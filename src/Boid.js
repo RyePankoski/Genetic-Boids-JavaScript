@@ -17,11 +17,33 @@ export class Boid {
     const canvas = document.getElementById('canvas');
     this.width = canvas.width;
     this.height = canvas.height;
+
+    this.centerX = this.width / 2;
+    this.centerY = this.height / 2;
+    this.edgeBuffer = 50;
   }
 
-  update(settings, allBlocks) {
+  update(settings) {
     this.x += this.dx * settings.VELOCITY;
     this.y += this.dy * settings.VELOCITY;
+
+    this.handleEdgeOfScreen();
+    const sectorX = Math.floor(this.x / settings.SECTOR_SIZE);
+    const sectorY = Math.floor(this.y / settings.SECTOR_SIZE);
+    this.sector = `${sectorX},${sectorY}`;
+
+    this.age++;
+  }
+
+  handleEdgeOfScreen() {
+
+    if (this.x < this.edgeBuffer || this.x > this.width - this.edgeBuffer) {
+      this.dx += (this.centerX - this.x) * 0.0001;  // Steer toward center X
+    }
+    if (this.y < this.edgeBuffer || this.y > this.height - this.edgeBuffer) {
+      this.dy += (this.centerY - this.y) * 0.0001;  // Steer toward center Y
+    }
+
 
     if (this.x > this.width || this.x < 0) {
       this.dx *= -1;
@@ -29,18 +51,9 @@ export class Boid {
     if (this.y > this.height || this.y < 0) {
       this.dy *= -1;
     }
-
-    const sectorX = Math.floor(this.x / settings.SECTOR_SIZE);
-    const sectorY = Math.floor(this.y / settings.SECTOR_SIZE);
-    this.sector = `${sectorX},${sectorY}`;
-
-    // if (allBlocks[this.sector] && allBlocks[this.sector].length > 0) {
-    //   this.dy *= -1;
-    //   this.dx *= -1;
-    // }
-
-    this.age++;
   }
+
+
 
   handleFlocking(nearbyBoids, nearbyBlocks, settings) {
     let actualNeighbors = nearbyBoids.filter(b => b !== this);
@@ -86,7 +99,8 @@ export class Boid {
     for (let nearBoid of sampledBoids) {
       let [dx, dy, distanceSquared] = this.getDistanceInformation(nearBoid);
 
-      if (nearBoid.gene === this.gene) {  // Fixed: changed == to ===
+      if (nearBoid.gene === this.gene) {
+        this.cohesiveForce(nearBoid) // Fixed: changed == to ===
         this.alone = false; // Found a same-gene neighbor!
         if (this.amITooClose(distanceSquared, settings)) {
           this.adjustVectorFarther(dx, dy, settings);
@@ -121,6 +135,12 @@ export class Boid {
     return [0, 0];
   }
 
+  cohesiveForce(otherBoid) {
+    let nudge = 0.0001;
+    this.dx += (otherBoid.x > this.x) ? nudge : -nudge;
+    this.dy += (otherBoid.y > this.y) ? nudge : -nudge;
+  }
+
   adjustVectorCloser(otherBoid, settings) {
     let newDx = this.dx + (otherBoid.dx - this.dx) * settings.ADJUST_RATE;
     let newDy = this.dy + (otherBoid.dy - this.dy) * settings.ADJUST_RATE;
@@ -146,7 +166,7 @@ export class Boid {
     this.dy = normalizedDy * settings.VELOCITY;
   }
 
-  repelFromBlocks(dx, dy, settings){
+  repelFromBlocks(dx, dy, settings) {
     let [repelDx, repelDy] = this.normalizeVector(-dx, -dy);
 
     let newDx = this.dx + repelDx * settings.BLOCK_REPEL_RATE;
