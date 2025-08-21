@@ -21,7 +21,6 @@ function App() {
     BLOCK_REPEL_RATE: 0.4,
   });
 
-  // Tour state
   const [tourStep, setTourStep] = useState(0);
   const [showControls, setShowControls] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -31,26 +30,20 @@ function App() {
   const [showObstacleHint, setShowObstacleHint] = useState(false);
   const [showObstacleTray, setShowObstacleTray] = useState(false);
 
-  // Journal state
   const [showJournal, setShowJournal] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-
-  // Obstacle/Block state
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-
-  // Store BoidManager instance in a ref
   const boidManagerRef = useRef(null);
   const animationIdRef = useRef(null);
 
-  // Add this array of your journal page images (replace with your actual image paths)
   const journalPages = [
-    './images/page1.png',  // Replace with your image paths
+    './images/page1.png',  
     './images/page2.png',
     './images/page3.png',
     './images/page4.png',
     './images/page5.png',
-    // Add more pages as needed
+ 
   ];
 
   // Journal navigation functions
@@ -156,7 +149,7 @@ function App() {
     };
   }, [simulationStarted]);
 
-  // Main simulation effect - only runs after simulation starts
+  // Main simulation effect
   useEffect(() => {
     if (!simulationStarted) return;
 

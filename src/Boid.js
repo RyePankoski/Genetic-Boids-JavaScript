@@ -38,11 +38,10 @@ export class Boid {
   handleEdgeOfScreen() {
 
     if (this.x < this.edgeBuffer || this.x > this.width - this.edgeBuffer) {
-      this.dx += (this.centerX - this.x) * 0.0001;  // Steer toward center X
+      this.dx += (this.centerX - this.x) * 0.001;  
     }
     if (this.y < this.edgeBuffer || this.y > this.height - this.edgeBuffer) {
-      this.dy += (this.centerY - this.y) * 0.0001;  // Steer toward center Y
-    }
+      this.dy += (this.centerY - this.y) * 0.001; 
 
 
     if (this.x > this.width || this.x < 0) {

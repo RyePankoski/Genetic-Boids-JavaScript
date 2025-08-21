@@ -25,7 +25,7 @@ export class BoidManager {
         // Update DENSITY_DISTANCE_SQUARED when DENSITY_DISTANCE changes
         this.settings.DENSITY_DISTANCE_SQUARED = newSettings.DENSITY_DISTANCE * newSettings.DENSITY_DISTANCE;
 
-        // If sector size changed, recalculate all boid sectors and block sectors
+        // If sector size changed, recalculate all boid sectors.
         if (oldSectorSize && oldSectorSize !== newSettings.SECTOR_SIZE) {
             this.recalculateAllBoidSectors();
             this.blockDictionary = {};
@@ -58,9 +58,8 @@ export class BoidManager {
         const snapY = sectorY * settings.SECTOR_SIZE;
         const sectorKey = `${sectorX},${sectorY}`;
 
-        // Check if block already exists in this sector
         if (this.blockDictionary[sectorKey] && this.blockDictionary[sectorKey].length > 0) {
-            return; // Don't place if sector already has a block
+            return;
         }
 
         const newBlock = new Block(snapX, snapY, settings);
@@ -120,15 +119,14 @@ export class BoidManager {
     drawBlocks(ctx) {
         Object.values(this.blockDictionary).forEach(sectorBlocks => {
             sectorBlocks.forEach(block => {
-                ctx.fillStyle = '#8B4513'; // Brown color
+                ctx.fillStyle = '#8B4513'; 
                 ctx.fillRect(block.x, block.y, this.settings.SECTOR_SIZE, this.settings.SECTOR_SIZE);
 
-                // Add border
+                
                 ctx.strokeStyle = '#654321';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(block.x, block.y, this.settings.SECTOR_SIZE, this.settings.SECTOR_SIZE);
 
-                // Add brick texture
                 ctx.fillStyle = '#A0522D';
                 const brickHeight = this.settings.SECTOR_SIZE / 4;
                 for (let i = 0; i < 4; i++) {
@@ -161,7 +159,6 @@ export class BoidManager {
             return;
         }
 
-        
         // If through genetic drift, the parent has a lifespan beneath the min, they do not reproduce.
         if (parentBoid.lifespan <= this.settings.MIN_LIFESPAN) {
             return;
