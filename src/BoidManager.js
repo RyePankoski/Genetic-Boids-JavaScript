@@ -1,19 +1,84 @@
-import { settings } from "./Settings.js";
 import { Boid } from "./Boid.js";
+import { Block } from "./Block.js";
+import SoundManager from "./SoundManager.js";
 import { handleGenes, drawBoids } from "./Utils.js";
 
-export class BoidManager {  // Add export and fix class name
-    constructor() {
+export class BoidManager {
+    constructor(settings) {
+        this.settings = settings;
         const canvas = document.getElementById('canvas');
         this.width = canvas.width;
         this.height = canvas.height;
         this.boidDictionary = {};
+        this.blockDictionary = {};
         this.createAdam();
+        this.createStartingBlocks();
+
+        this.soundManager = new SoundManager(this.settings);
+        this.soundManager.loadSound('milestone', '/milestone.mp3');
+        this.soundManager.loadSound('birth', '/birth.mp3')
+    }
+
+    updateSettings(newSettings) {
+        const oldSectorSize = this.settings ? this.settings.SECTOR_SIZE : null;
+        this.settings = { ...newSettings };
+        // Update DENSITY_DISTANCE_SQUARED when DENSITY_DISTANCE changes
+        this.settings.DENSITY_DISTANCE_SQUARED = newSettings.DENSITY_DISTANCE * newSettings.DENSITY_DISTANCE;
+
+        // If sector size changed, recalculate all boid sectors and block sectors
+        if (oldSectorSize && oldSectorSize !== newSettings.SECTOR_SIZE) {
+            this.recalculateAllBoidSectors();
+            this.blockDictionary = {};
+        }
+    }
+
+    recalculateAllBoidSectors() {
+        let newDictionary = {};
+        Object.values(this.boidDictionary).forEach(sectorBoids => {
+            sectorBoids.forEach(boid => {
+                let newSectorX = Math.floor(boid.x / this.settings.SECTOR_SIZE);
+                let newSectorY = Math.floor(boid.y / this.settings.SECTOR_SIZE);
+                let newSector = `${newSectorX},${newSectorY}`;
+                boid.sector = newSector;
+                if (newDictionary[newSector]) {
+                    newDictionary[newSector].push(boid);
+                } else {
+                    newDictionary[newSector] = [boid];
+                }
+            });
+        });
+        this.boidDictionary = newDictionary;
+    }
+
+    addBlock(x, y, settings) {
+        // Snap to sector grid
+        const sectorX = Math.floor(x / settings.SECTOR_SIZE);
+        const sectorY = Math.floor(y / settings.SECTOR_SIZE);
+        const snapX = sectorX * settings.SECTOR_SIZE;
+        const snapY = sectorY * settings.SECTOR_SIZE;
+        const sectorKey = `${sectorX},${sectorY}`;
+
+        // Check if block already exists in this sector
+        if (this.blockDictionary[sectorKey] && this.blockDictionary[sectorKey].length > 0) {
+            return; // Don't place if sector already has a block
+        }
+
+        const newBlock = new Block(snapX, snapY, settings);
+
+        if (this.blockDictionary[sectorKey]) {
+            this.blockDictionary[sectorKey].push(newBlock);
+        } else {
+            this.blockDictionary[sectorKey] = [newBlock];
+        }
     }
 
     run(ctx) {
+        this.drawGrid(ctx);
+        this.drawBlocks(ctx);
+        // this.soundManager.checkMilestone(this.currentBoids);
+
         let boidsToRemove = [];
-        let parentsToReproduce = [];  // Just store the parent boids directly
+        let parentsToReproduce = [];
 
         if (this.currentBoids <= 0) {
             this.createAdam();
@@ -22,12 +87,13 @@ export class BoidManager {  // Add export and fix class name
         Object.values(this.boidDictionary).forEach(sectorBoids => {
             [...sectorBoids].forEach(boid => {
                 let nearbyBoids = this.getNearByBoids(boid);
+                let nearbyBlocks = this.getNearByBlocks(boid);
 
                 drawBoids(boid, ctx);
 
                 let oldSector = boid.sector;
-                boid.update();
-                boid.handleFlocking(nearbyBoids);
+                boid.update(this.settings, this.blockDictionary);
+                boid.handleFlocking(nearbyBoids, nearbyBlocks, this.settings);
 
                 if (boid.sector !== oldSector) {
                     this.moveBoidToNewSector(boid, oldSector);
@@ -35,14 +101,14 @@ export class BoidManager {  // Add export and fix class name
 
                 if (boid.age >= boid.lifespan) {
                     boidsToRemove.push(boid);
-                    parentsToReproduce.push(boid);  // No object creation
+                    parentsToReproduce.push(boid);
                 }
             });
         });
 
         if (parentsToReproduce.length > 0) {
-            for (let parent of parentsToReproduce) {  // Simple loop, no destructuring
-                this.addBoids(parent, settings.BIRTHRATE);
+            for (let parent of parentsToReproduce) {
+                this.addBoids(parent, this.settings.BIRTHRATE);
             }
         }
 
@@ -51,38 +117,63 @@ export class BoidManager {  // Add export and fix class name
         }
     }
 
-    addBoids(parentBoid, number) {
+    drawBlocks(ctx) {
+        Object.values(this.blockDictionary).forEach(sectorBlocks => {
+            sectorBlocks.forEach(block => {
+                ctx.fillStyle = '#8B4513'; // Brown color
+                ctx.fillRect(block.x, block.y, this.settings.SECTOR_SIZE, this.settings.SECTOR_SIZE);
 
-        let populationPressure = this.currentBoids / settings.MAX_BOIDS;
+                // Add border
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(block.x, block.y, this.settings.SECTOR_SIZE, this.settings.SECTOR_SIZE);
+
+                // Add brick texture
+                ctx.fillStyle = '#A0522D';
+                const brickHeight = this.settings.SECTOR_SIZE / 4;
+                for (let i = 0; i < 4; i++) {
+                    if (i % 2 === 0) {
+                        ctx.fillRect(block.x + this.settings.SECTOR_SIZE / 4, block.y + i * brickHeight, this.settings.SECTOR_SIZE / 2, 1);
+                    } else {
+                        ctx.fillRect(block.x + this.settings.SECTOR_SIZE / 8, block.y + i * brickHeight, this.settings.SECTOR_SIZE / 4, 1);
+                        ctx.fillRect(block.x + this.settings.SECTOR_SIZE * 5 / 8, block.y + i * brickHeight, this.settings.SECTOR_SIZE / 4, 1);
+                    }
+                }
+            });
+        });
+    }
+
+    addBoids(parentBoid, number) {
+        let populationPressure = this.currentBoids / this.settings.MAX_BOIDS;
         let reproductionChance = Math.max(0.1, 1 - populationPressure);
 
         if (Math.random() > reproductionChance) {
             return;
         }
 
-        if (parentBoid.lifespan <= settings.MIN_LIFESPAN) {
+        if (parentBoid.lifespan <= this.settings.MIN_LIFESPAN) {
             return;
         }
 
-        if (parentBoid.alone == true && parentBoid.amIadam == false) {
+        if (parentBoid.alone === true && parentBoid.amIadam === false) {
             return;
         }
-
-
 
         for (let i = 0; i < number; i++) {
+            // this.soundManager.playBirthSound(0.05);
+
             this.currentBoids += 1;
             let newDx = parentBoid.dx + Math.random() * 0.2 - 0.1;
             let newDy = parentBoid.dy + Math.random() * 0.2 - 0.1;
 
-            let sectorX = Math.floor(parentBoid.x / settings.SECTOR_SIZE);
-            let sectorY = Math.floor(parentBoid.y / settings.SECTOR_SIZE);
+            let sectorX = Math.floor(parentBoid.x / this.settings.SECTOR_SIZE);
+            let sectorY = Math.floor(parentBoid.y / this.settings.SECTOR_SIZE);
             let sector = `${sectorX},${sectorY}`;
 
-            let newBoid = new Boid(parentBoid.x, parentBoid.y, newDx, newDy, parentBoid.gene, settings.LIFESPAN, sector, false)
+            let newBoid = new Boid(parentBoid.x, parentBoid.y, newDx, newDy,
+                parentBoid.gene, this.settings.LIFESPAN, sector, false)
 
-            handleGenes(newBoid, parentBoid)
-
+            handleGenes(newBoid, parentBoid, this.settings)
 
             if (newBoid.sector in this.boidDictionary) {
                 this.boidDictionary[newBoid.sector].push(newBoid);
@@ -111,7 +202,6 @@ export class BoidManager {  // Add export and fix class name
         }
     }
 
-
     getNearByBoids(boid) {
         let nearbyBoids = [];
         let neighborSectors = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
@@ -136,6 +226,19 @@ export class BoidManager {  // Add export and fix class name
         return nearbyBoids;
     }
 
+    getNearByBlocks(boid) {
+        let nearbyBlocks = [];
+        let allSectors = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 0], [0, 1], [1, -1], [1, 0], [1, 1]];
+
+        for (let [dx, dy] of allSectors) {
+            let checkSector = `${parseInt(boid.sector.split(',')[0]) + dx},${parseInt(boid.sector.split(',')[1]) + dy}`;
+            if (this.blockDictionary[checkSector]) {
+                nearbyBlocks.push(...this.blockDictionary[checkSector]);
+            }
+        }
+        return nearbyBlocks;
+    }
+
     moveBoidToNewSector(boid, oldSector) {
         if (oldSector in this.boidDictionary) {
             const oldSectorBoids = this.boidDictionary[oldSector];
@@ -155,38 +258,57 @@ export class BoidManager {  // Add export and fix class name
         }
     }
 
-    createAdam() {
-        const sectorX = Math.floor((this.width / 2) / settings.SECTOR_SIZE);
-        const sectorY = Math.floor((this.height / 2) / settings.SECTOR_SIZE);
+    createStartingBlocks() {
+        const centerX = this.width / 2;
+        const centerY = this.height / 2;
+        const offset = this.settings.SECTOR_SIZE * 5; // Distance from center
 
+        // Top left
+        this.addBlock(centerX - offset, centerY + offset, this.settings);
+
+        // Top right
+        this.addBlock(centerX + offset, centerY + offset, this.settings);
+
+        // Bottom left
+        this.addBlock(centerX - offset, centerY - offset, this.settings);
+
+        // Bottom Right
+        this.addBlock(centerX + offset, centerY - offset, this.settings);
+    }
+
+    createAdam() {
+        const sectorX = Math.floor((this.width / 2) / this.settings.SECTOR_SIZE);
+        const sectorY = Math.floor((this.height / 2) / this.settings.SECTOR_SIZE);
         const adamSector = `${sectorX},${sectorY}`;
-        const adam = new Boid(100, 100, 1, 1, "r", settings.LIFESPAN, adamSector, true);
+        const adam = new Boid(100, 100, 1, 1, "r", this.settings.LIFESPAN, adamSector, true);
 
         this.currentBoids = 1;
         this.boidDictionary[adamSector] = [adam];
     }
 
+    drawGrid(ctx) {
+        let xLine = 0;
+        let yLine = 0;
 
-    recalculateAllBoidSectors() {
-        let newDictionary = {};
+        ctx.strokeStyle = "rgba(128, 128, 128, 0.3)";
+        ctx.lineWidth = 1;
 
-        Object.values(this.boidDictionary).forEach(sectorBoids => {
-            sectorBoids.forEach(boid => {
-                let newSectorX = Math.floor(boid.x / settings.SECTOR_SIZE);
-                let newSectorY = Math.floor(boid.y / settings.SECTOR_SIZE);
-                let newSector = `${newSectorX},${newSectorY}`;
+        // Draw vertical lines
+        while (xLine <= this.width) {
+            ctx.beginPath();
+            ctx.moveTo(xLine, 0);
+            ctx.lineTo(xLine, this.height);
+            ctx.stroke();
+            xLine += this.settings.SECTOR_SIZE;
+        }
 
-                boid.sector = newSector;
-
-                if (newDictionary[newSector]) {
-                    newDictionary[newSector].push(boid);
-                } else {
-                    newDictionary[newSector] = [boid];
-                }
-            });
-        });
-        this.boidDictionary = newDictionary;
+        // Draw horizontal lines
+        while (yLine <= this.height) {
+            ctx.beginPath();
+            ctx.moveTo(0, yLine);
+            ctx.lineTo(this.width, yLine);
+            ctx.stroke();
+            yLine += this.settings.SECTOR_SIZE;
+        }
     }
-
 }
-

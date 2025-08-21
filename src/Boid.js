@@ -1,5 +1,3 @@
-import { settings } from "./Settings.js";
-
 export class Boid {
   constructor(x, y, dx, dy, gene, lifespan, sector, amIadam) {
     this.x = x;
@@ -21,14 +19,13 @@ export class Boid {
     this.height = canvas.height;
   }
 
-  update() {
+  update(settings, allBlocks) {
     this.x += this.dx * settings.VELOCITY;
     this.y += this.dy * settings.VELOCITY;
 
     if (this.x > this.width || this.x < 0) {
       this.dx *= -1;
     }
-
     if (this.y > this.height || this.y < 0) {
       this.dy *= -1;
     }
@@ -37,13 +34,38 @@ export class Boid {
     const sectorY = Math.floor(this.y / settings.SECTOR_SIZE);
     this.sector = `${sectorX},${sectorY}`;
 
+    // if (allBlocks[this.sector] && allBlocks[this.sector].length > 0) {
+    //   this.dy *= -1;
+    //   this.dx *= -1;
+    // }
+
     this.age++;
   }
 
-  handleFlocking(nearbyBoids) {
-
+  handleFlocking(nearbyBoids, nearbyBlocks, settings) {
     let actualNeighbors = nearbyBoids.filter(b => b !== this);
     let sampledBoids;
+
+    // Handle block repulsion first
+    if (nearbyBlocks.length > 0) {
+      for (let block of nearbyBlocks) {
+        // Calculate distance to center of block sector
+        let blockCenterX = block.x + (settings.SECTOR_SIZE / 2);
+        let blockCenterY = block.y + (settings.SECTOR_SIZE / 2);
+
+        let dx = blockCenterX - this.x;
+        let dy = blockCenterY - this.y;
+        let distanceSquared = (dx * dx) + (dy * dy);
+
+        // Use a larger repel distance for blocks since they fill entire sectors
+        let blockRepelDistance = settings.SECTOR_SIZE * 1.5;
+        let blockRepelDistanceSquared = blockRepelDistance * blockRepelDistance;
+
+        if (distanceSquared < blockRepelDistanceSquared) {
+          this.repelFromBlocks(dx, dy, settings);
+        }
+      }
+    }
 
     if (actualNeighbors.length > settings.MAX_FLOCKING_NEIGHBORS) {
       sampledBoids = [];
@@ -59,28 +81,27 @@ export class Boid {
       sampledBoids = actualNeighbors;
     }
 
-
     this.alone = true;
 
     for (let nearBoid of sampledBoids) {
       let [dx, dy, distanceSquared] = this.getDistanceInformation(nearBoid);
 
-      if (nearBoid.gene == this.gene) {
+      if (nearBoid.gene === this.gene) {  // Fixed: changed == to ===
         this.alone = false; // Found a same-gene neighbor!
-        if (this.amITooClose(distanceSquared)) {
-          this.adjustVectorFarther(dx, dy);
+        if (this.amITooClose(distanceSquared, settings)) {
+          this.adjustVectorFarther(dx, dy, settings);
         } else {
-          this.adjustVectorCloser(nearBoid);
+          this.adjustVectorCloser(nearBoid, settings);
         }
       } else {
-        this.repelDifferentGenes(dx, dy);
+        this.repelDifferentGenes(dx, dy, settings);
       }
     }
   }
 
-  getDistanceInformation(otherBoid) {
-    let dx = otherBoid.x - this.x;
-    let dy = otherBoid.y - this.y;
+  getDistanceInformation(e) {
+    let dx = e.x - this.x;
+    let dy = e.y - this.y;
     let distanceSquared = ((dx * dx) + (dy * dy));
     return [dx, dy, distanceSquared];
   }
@@ -88,7 +109,7 @@ export class Boid {
   normalizeVector(dx, dy) {
     let magnitudeSquared = (dx * dx) + (dy * dy);
 
-    if (magnitudeSquared > 0.999 && magnitudeSquared < 1.0001) {
+    if (magnitudeSquared > 0.98 && magnitudeSquared < 1.02) {
       return [dx, dy];
     }
 
@@ -100,7 +121,7 @@ export class Boid {
     return [0, 0];
   }
 
-  adjustVectorCloser(otherBoid) {
+  adjustVectorCloser(otherBoid, settings) {
     let newDx = this.dx + (otherBoid.dx - this.dx) * settings.ADJUST_RATE;
     let newDy = this.dy + (otherBoid.dy - this.dy) * settings.ADJUST_RATE;
 
@@ -113,7 +134,7 @@ export class Boid {
     }
   }
 
-  adjustVectorFarther(dx, dy) {
+  adjustVectorFarther(dx, dy, settings) {
     let [repelDx, repelDy] = this.normalizeVector(-dx, -dy);
 
     let newDx = this.dx + repelDx * settings.ADJUST_RATE;
@@ -125,7 +146,19 @@ export class Boid {
     this.dy = normalizedDy * settings.VELOCITY;
   }
 
-  repelDifferentGenes(dx, dy) {
+  repelFromBlocks(dx, dy, settings){
+    let [repelDx, repelDy] = this.normalizeVector(-dx, -dy);
+
+    let newDx = this.dx + repelDx * settings.BLOCK_REPEL_RATE;
+    let newDy = this.dy + repelDy * settings.BLOCK_REPEL_RATE;
+
+    let [normalizedDx, normalizedDy] = this.normalizeVector(newDx, newDy);
+
+    this.dx = normalizedDx * settings.VELOCITY;
+    this.dy = normalizedDy * settings.VELOCITY;
+  }
+
+  repelDifferentGenes(dx, dy, settings) {
     let [repelDx, repelDy] = this.normalizeVector(-dx, -dy);
 
     let newDx = this.dx + repelDx * settings.ADJUST_RATE;
@@ -137,7 +170,9 @@ export class Boid {
     this.dy = normalizedDy * settings.VELOCITY;
   }
 
-  amITooClose(distanceSquared) {
-    return distanceSquared < settings.DENSITY_DISTANCE_SQUARED;
+  amITooClose(distanceSquared, settings) {
+    // Calculate DENSITY_DISTANCE_SQUARED dynamically
+    const densityDistanceSquared = settings.DENSITY_DISTANCE * settings.DENSITY_DISTANCE;
+    return distanceSquared < densityDistanceSquared;
   }
 }
