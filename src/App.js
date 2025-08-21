@@ -45,11 +45,11 @@ function App() {
 
   // Add this array of your journal page images (replace with your actual image paths)
   const journalPages = [
-    '/images/page1.png',  // Replace with your image paths
-    '/images/page2.png',
-    '/images/page3.png',
-    '/images/page4.png',
-    '/images/page5.png',
+    './images/page1.png',  // Replace with your image paths
+    './images/page2.png',
+    './images/page3.png',
+    './images/page4.png',
+    './images/page5.png',
     // Add more pages as needed
   ];
 

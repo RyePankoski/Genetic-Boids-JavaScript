@@ -147,14 +147,28 @@ export class BoidManager {
         let populationPressure = this.currentBoids / this.settings.MAX_BOIDS;
         let reproductionChance = Math.max(0.1, 1 - populationPressure);
 
+        // Reproduction is not hard capped by the limit, rather the more boids over the limit there are, the less likely they are to reproduce.
         if (Math.random() > reproductionChance) {
             return;
         }
 
+        // If the boid is hugging the edge of the screen or is off screen, they should not reproduce.
+        if (parentBoid.x <= 0 || parentBoid.x >= this.width) {
+            return;
+        }
+
+        if (parentBoid.y <= 0 || parentBoid.y >= this.width) {
+            return;
+        }
+
+        
+        // If through genetic drift, the parent has a lifespan beneath the min, they do not reproduce.
         if (parentBoid.lifespan <= this.settings.MIN_LIFESPAN) {
             return;
         }
 
+        
+        // Boids who are not in a flock dont reproduce. This is to avoid visual noise.
         if (parentBoid.alone === true && parentBoid.amIadam === false) {
             return;
         }
