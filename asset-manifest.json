@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Genetic-Boids-JavaScript/static/css/main.a534a8bc.css",
-    "main.js": "/Genetic-Boids-JavaScript/static/js/main.3a39efda.js",
+    "main.js": "/Genetic-Boids-JavaScript/static/js/main.b7afed7c.js",
     "index.html": "/Genetic-Boids-JavaScript/index.html",
     "main.a534a8bc.css.map": "/Genetic-Boids-JavaScript/static/css/main.a534a8bc.css.map",
-    "main.3a39efda.js.map": "/Genetic-Boids-JavaScript/static/js/main.3a39efda.js.map"
+    "main.b7afed7c.js.map": "/Genetic-Boids-JavaScript/static/js/main.b7afed7c.js.map"
   },
   "entrypoints": [
     "static/css/main.a534a8bc.css",
-    "static/js/main.3a39efda.js"
+    "static/js/main.b7afed7c.js"
   ]
 }
