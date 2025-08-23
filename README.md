@@ -1,70 +1,104 @@
-# Getting Started with Create React App
+# Genetic Boids Simulation
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Portfolio Showcase Project**
 
-## Available Scripts
+A flocking simulation combining genetic algorithms and real-time graphics programming. 
+This project showcases implementation of complex algorithms, performance optimization, and intuitive user interface design.
 
-In the project directory, you can run:
+## Live Demo
 
-### `npm start`
+<img width="2554" height="1298" alt="Screenshot 2025-08-22 185934" src="https://github.com/user-attachments/assets/1c4af4de-dbba-482e-94c3-7b2ee4d4fc0a" />
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**[Try the Simulation](https://ryepankoski.github.io/Genetic-Boids-JavaScript/)**
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+No installation required - runs directly in your browser.
 
-### `npm test`
+## Project Overview
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+This simulation implements Reynolds' classic boids algorithm with genetic evolution, creating emergent behaviors from simple rules. 
+Each boid carries genetic information that influences its behavior and appearance, and was added to make the flocks more dynamic and interesting to watch.
 
-### `npm run build`
+**Key Technical Achievements:**
+- Custom flocking algorithm with separation, alignment, and cohesion behaviors
+- Genetic algorithm with mutation and inheritance
+- Spatial hash grid optimization reducing neighbor detection from O(n²) to O(n)
+- Real-time parameter adjustment supporting 1000+ concurrent entities. (This depends on hardware too)
+- Interactive obstacle placement with drag-and-drop interface
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Skills Demonstrated
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+**Programming & Algorithms**
+- JavaScript ES6+ with modern React patterns
+- Object-oriented design and algorithm optimization
+- Mathematical modeling and vector calculations
+- Performance analysis and Big O optimization
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**System Design**
+- Modular architecture with clear separation of concerns
+- Event-driven simulation with real-time parameter updates
+- Efficient memory management for dynamic populations
 
-### `npm run eject`
+**User Experience**
+- Intuitive interface with guided tour system
+- Real-time visualization of complex parameters
+- Educational content explaining underlying concepts
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Architecture
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+**Core Classes:**
+- `BoidManager`: Handles simulation state and population lifecycle
+- `Boid`: Individual agents implementing flocking and genetic behaviors  
+- `Block`: Interactive obstacles with collision detection
+- `SoundManager`: Audio feedback system
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+**Performance Optimizations:**
+- Sector-based spatial partitioning for efficient collision detection
+- Neighbor sampling to limit computational overhead
+- Frame rate control maintaining smooth 30 FPS performance
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Getting Started
 
-## Learn More
+### Run Locally (Optional)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+For development or contributions:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+git clone https://github.com/yourusername/genetic-boids-simulation.git
+cd genetic-boids-simulation
+npm install
+npm start
+```
 
-### Code Splitting
+### Usage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. Launch the simulation and follow the guided tour
+2. Adjust parameters in real-time using the control panel
+3. Place obstacles by dragging blocks from the tray
+4. Read the educational journal via "How It Works"
 
-### Analyzing the Bundle Size
+## Key Parameters
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- **Velocity**: Movement speed of boids
+- **Sector Size**: Spatial partitioning resolution
+- **Gene Bias**: Strength of genetic inheritance
+- **Color Mutation**: Rate of genetic variation
+- **Population Dynamics**: Birth rates and lifespan controls
 
-### Making a Progressive Web App
+## Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Contributions welcome! Areas of interest include:
+- Performance optimizations
+- Additional genetic traits
+- Mobile responsiveness
+- Educational content expansion
 
-### Advanced Configuration
+## References
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- Reynolds, C. W. (1987). "Flocks, herds and schools: A distributed behavioral model"
+- Goldberg, D. E. (1989). "Genetic Algorithms in Search, Optimization and Machine Learning"
 
-### Deployment
+## Contact
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Portfolio**: [Your Website][(https://github.com/RyePankoski?tab=repositories)]
+- **Email**: your.email@example.com
