@@ -100,5 +100,6 @@ Contributions welcome! Areas of interest include:
 ## Contact
 
 
-- **Portfolio**: [(https://github.com/RyePankoski?tab=repositories)]
+- **Portfolio**: https://github.com/RyePankoski?tab=repositories
 - **Email**: ryedpankoski@gmail.com
+- **Phone**: 303-304-6181
