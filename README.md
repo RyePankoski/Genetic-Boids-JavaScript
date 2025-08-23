@@ -100,5 +100,5 @@ Contributions welcome! Areas of interest include:
 ## Contact
 
 
-- **Portfolio**: [Your Website][(https://github.com/RyePankoski?tab=repositories)]
-- **Email**: your.email@example.com
+- **Portfolio**: [(https://github.com/RyePankoski?tab=repositories)]
+- **Email**: ryedpankoski@gmail.com
